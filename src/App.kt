@@ -29,10 +29,10 @@ fun draw() {
 fun doesFit(x: Int, y: Int, width: Int, height: Int): Boolean {
 //    (a + ib) * (c + id) = (ac - db) + i(ad + bc)
     // new = old * old + first
-    val a = (x.toDouble() - width / 2) / 300
-    val b = (y.toDouble() - height / 2) / 300
-    fun nextA(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curA - curB * curB + firstA
-    fun nextB(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curB + curA * curB + firstB
+    val a = x - width / 2
+    val b = y - height / 2
+    fun nextA(curA: Int, curB: Int, firstA: Int, firstB: Int) = curA * curA - curB * curB + firstA
+    fun nextB(curA: Int, curB: Int, firstA: Int, firstB: Int) = curA * curB + curA * curB + firstB
 
     var newA = a
     var newB = b
@@ -41,9 +41,8 @@ fun doesFit(x: Int, y: Int, width: Int, height: Int): Boolean {
         newA = nextA(newA, newB, a, b)
         newB = nextB(newA, newB, a, b)
     }
-//    return newA == a && newB == b
 //    return a < 1.0 && a > -1.0 && b < 1.0 && b > -1.0
-    return newA * newA + newB * newB < 4
+    return newA * newA + newB * newB < 400
 }
 
 fun main(args: Array<String>) {
