@@ -7,8 +7,6 @@ import kotlin.browser.window
 
 
 fun draw() {
-//    val contentDiv = document.getElementById("content")
-//    contentDiv?.textContent = "Hello from Kotlin"
     val canvas = document.getElementById("mainCanvas")!!
     println("inner: ${window.innerWidth}x${window.innerHeight} client: ${document.documentElement?.clientWidth}x${document.documentElement?.clientHeight}")
     canvas.setAttribute("width", window.innerWidth.toString())
@@ -17,14 +15,35 @@ fun draw() {
     val width = canvas.clientWidth
     val height = canvas.clientHeight
 
-    for (i in 0..height - 1) {
-        for (j in 0..width - 1) {
-            val a = ((i / 10) + (j / 10)) % 2 == 0
-            val color = if (a) "#ffffff" else "#000000"
+    for (y in 0..height - 1) {
+        for (x in 0..width - 1) {
+//            val fit = ((y / 10) + (x / 10)) % 2 == 0
+            val fit = doesFit(x, y, width, height)
+            val color = if (fit) "#ffffff" else "#000000"
             ctx.fillStyle = color
-            ctx.fillRect(j.toDouble(), i.toDouble(), 1.0, 1.0)
+            ctx.fillRect(x.toDouble(), y.toDouble(), 1.0, 1.0)
         }
     }
+}
+
+fun doesFit(x: Int, y: Int, width: Int, height: Int): Boolean {
+//    (a + ib) * (c + id) = (ac - db) + i(ad + bc)
+    // new = old * old + first
+    val a = (x.toDouble() - width / 2) / 300
+    val b = (y.toDouble() - height / 2) / 300
+    fun nextA(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curA - curB * curB + firstA
+    fun nextB(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curB + curA * curB + firstB
+
+    var newA = a
+    var newB = b
+
+    repeat(10) {
+        newA = nextA(newA, newB, a, b)
+        newB = nextB(newA, newB, a, b)
+    }
+//    return newA == a && newB == b
+//    return a < 1.0 && a > -1.0 && b < 1.0 && b > -1.0
+    return newA * newA + newB * newB < 4
 }
 
 fun main(args: Array<String>) {
