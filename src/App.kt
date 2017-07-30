@@ -16,16 +16,22 @@ fun draw() {
     
     for (y in 0..height - 1) {
         for (x in 0..width - 1) {
-            val g = mandelbrot(x, y, width, height)
-            val color = "rgba($g, $g, $g, 255)"
-            ctx.fillStyle = color
+            val m = mandelbrot(x, y, width, height)
+            ctx.fillStyle = getColor(m)
             ctx.fillRect(x.toDouble(), y.toDouble(), 1.0, 1.0)
         }
     }
 }
 
-fun mandelbrot(x: Int, y: Int, width: Int, height: Int): Int {
-    val a = (x.toDouble() - width * 2) / 2400
+fun getColor(m: Double): String {
+    val colors = IntArray(256) { it }
+    val index = (m * 8 * (colors.size - 1)).coerceAtMost(255.0).toInt()
+    val g = colors[index]
+    return "rgba($g, $g, $g, 255)"
+}
+
+fun mandelbrot(x: Int, y: Int, width: Int, height: Int): Double {
+    val a = (x.toDouble() - width * 1.5) / 2400
     val b = (y.toDouble() - height * 2) / 2400
     fun nextA(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curA - curB * curB + firstA
     fun nextB(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curB + curA * curB + firstB
@@ -33,16 +39,16 @@ fun mandelbrot(x: Int, y: Int, width: Int, height: Int): Int {
     var zA = 0.0
     var zB = 0.0
 
-    repeat(255) {
+    repeat(512) {
         val zA2 = nextA(zA, zB, a, b)
         val zB2 = nextB(zA, zB, a, b)
         zA = zA2
         zB = zB2
         if (zA * zA + zB * zB > 4) {
-            return it
+            return it / 512.0
         }
     }
-    return 255
+    return 1.0
 }
 
 fun main(args: Array<String>) {
