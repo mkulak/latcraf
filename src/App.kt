@@ -13,9 +13,9 @@ fun draw() {
     val width = canvas.clientWidth
     val height = canvas.clientHeight
 
+    
     for (y in 0..height - 1) {
         for (x in 0..width - 1) {
-//            val fit = ((y / 10) + (x / 10)) % 2 == 0
             val g = mandelbrot(x, y, width, height)
             val color = "rgba($g, $g, $g, 255)"
             ctx.fillStyle = color
@@ -24,23 +24,9 @@ fun draw() {
     }
 }
 
-fun mandelbrot2(x: Int, y: Int, width: Int, height: Int): Int {
-    val a = (x.toDouble() - width / 2) / 300
-    val b = (y.toDouble() - height / 2) / 300
-    val z0 = Complex(a, b)
-    var z = Complex(0.0, 0.0)
-    repeat(255) {
-        z = z * z + z0
-        if (z.module() > 2) return it
-    }
-    return 255
-}
-
 fun mandelbrot(x: Int, y: Int, width: Int, height: Int): Int {
-//    (a + ib) * (c + id) = ac + iad + ibc + iibd = (ac - bd) + i(ad + bc)
-    // new = old * old + first
-    val a = (x.toDouble() - width / 2) / 300
-    val b = (y.toDouble() - height / 2) / 300
+    val a = (x.toDouble() - width * 2) / 2400
+    val b = (y.toDouble() - height * 2) / 2400
     fun nextA(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curA - curB * curB + firstA
     fun nextB(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curB + curA * curB + firstB
 
@@ -59,18 +45,32 @@ fun mandelbrot(x: Int, y: Int, width: Int, height: Int): Int {
     return 255
 }
 
-data class Complex(val a: Double, val b: Double) {
-    operator fun times(o: Complex): Complex = Complex(a * o.a - b * o.b, a * o.b + b * o.b)
-    operator fun plus(o: Complex): Complex = Complex(a + o.a, b + o.b)
-    fun module(): Double = Math.sqrt(a * a + b * b)
-}
-
 fun main(args: Array<String>) {
     println("hello world")
     window.onload = { draw() }
     window.onresize= { draw() }
 }
 
+data class Complex(val a: Double, val b: Double) {
+    operator fun times(o: Complex): Complex = Complex(a * o.a - b * o.b, a * o.b + b * o.a)
+    operator fun plus(o: Complex): Complex = Complex(a + o.a, b + o.b)
+    fun module(): Double = Math.sqrt(a * a + b * b)
+}
+
+fun mandelbrot2(x: Int, y: Int, width: Int, height: Int): Int {
+    val a = (x.toDouble() - width / 2) / 300
+    val b = (y.toDouble() - height / 2) / 300
+    val z0 = Complex(a, b)
+    var z = Complex(0.0, 0.0)
+    repeat(255) {
+        z = z * z + z0
+        if (z.module() > 2) return it
+    }
+    return 255
+}
+
+//    (a + ib) * (c + id) = ac + iad + ibc + iibd = (ac - bd) + i(ad + bc)
+// new = old * old + first
 
 //    val img = ctx.createImageData(width.toDouble(), height.toDouble())
 //    val data: Uint8ClampedArray = img.data
