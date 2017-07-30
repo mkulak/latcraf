@@ -1,9 +1,7 @@
-import org.khronos.webgl.Uint8ClampedArray
-import org.khronos.webgl.set
 import org.w3c.dom.CanvasRenderingContext2D
-import org.w3c.dom.events.Event
 import kotlin.browser.document
 import kotlin.browser.window
+import kotlin.js.Math
 
 
 fun draw() {
@@ -18,31 +16,53 @@ fun draw() {
     for (y in 0..height - 1) {
         for (x in 0..width - 1) {
 //            val fit = ((y / 10) + (x / 10)) % 2 == 0
-            val fit = doesFit(x, y, width, height)
-            val color = if (fit) "#ffffff" else "#000000"
+            val g = mandelbrot(x, y, width, height)
+            val color = "rgba($g, $g, $g, 255)"
             ctx.fillStyle = color
             ctx.fillRect(x.toDouble(), y.toDouble(), 1.0, 1.0)
         }
     }
 }
 
-fun doesFit(x: Int, y: Int, width: Int, height: Int): Boolean {
-//    (a + ib) * (c + id) = (ac - db) + i(ad + bc)
+fun mandelbrot2(x: Int, y: Int, width: Int, height: Int): Int {
+    val a = (x.toDouble() - width / 2) / 300
+    val b = (y.toDouble() - height / 2) / 300
+    val z0 = Complex(a, b)
+    var z = Complex(0.0, 0.0)
+    repeat(255) {
+        z = z * z + z0
+        if (z.module() > 2) return it
+    }
+    return 255
+}
+
+fun mandelbrot(x: Int, y: Int, width: Int, height: Int): Int {
+//    (a + ib) * (c + id) = ac + iad + ibc + iibd = (ac - bd) + i(ad + bc)
     // new = old * old + first
-    val a = (x.toDouble() - width * 2) / 1200
-    val b = (y.toDouble() - height / 2) / 1200
+    val a = (x.toDouble() - width / 2) / 300
+    val b = (y.toDouble() - height / 2) / 300
     fun nextA(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curA - curB * curB + firstA
     fun nextB(curA: Double, curB: Double, firstA: Double, firstB: Double) = curA * curB + curA * curB + firstB
 
-    var newA = a
-    var newB = b
+    var zA = 0.0
+    var zB = 0.0
 
-    repeat(1000) {
-        newA = nextA(newA, newB, a, b)
-        newB = nextB(newA, newB, a, b)
+    repeat(255) {
+        val zA2 = nextA(zA, zB, a, b)
+        val zB2 = nextB(zA, zB, a, b)
+        zA = zA2
+        zB = zB2
+        if (zA * zA + zB * zB > 4) {
+            return it
+        }
     }
-//    return a < 1.0 && a > -1.0 && b < 1.0 && b > -1.0
-    return newA * newA + newB * newB < 4
+    return 255
+}
+
+data class Complex(val a: Double, val b: Double) {
+    operator fun times(o: Complex): Complex = Complex(a * o.a - b * o.b, a * o.b + b * o.b)
+    operator fun plus(o: Complex): Complex = Complex(a + o.a, b + o.b)
+    fun module(): Double = Math.sqrt(a * a + b * b)
 }
 
 fun main(args: Array<String>) {
