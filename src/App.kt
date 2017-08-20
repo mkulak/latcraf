@@ -1,5 +1,5 @@
-import org.w3c.dom.CanvasRenderingContext2D
-import org.w3c.dom.Element
+import org.khronos.webgl.set
+import org.w3c.dom.*
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import kotlin.browser.document
@@ -18,15 +18,20 @@ fun onLoad() {
 }
 
 class MainView(val canvas: Element) {
-    val ctx = canvas.asDynamic().getContext("2d") as CanvasRenderingContext2D
     val iterationsCount = 64
     val colors = arrayOf(color11, color1, color2, color6, color8, color9, color10)
-    var colorPalete = 0
+    val ctx = canvas.asDynamic().getContext("2d") as CanvasRenderingContext2D
+    var img = ctx.createImageData(500.0, 500.0)
     var zoom = 0
     var xOffset = 0
     var yOffset = 0
+
     var width: Int = 0
     var height: Int = 0
+
+    var mouseDownX = 0
+    var mouseDownY = 0
+    var colorPalete = 0
 
     fun init() {
         window.onresize = { onResize() }
@@ -34,30 +39,23 @@ class MainView(val canvas: Element) {
         window.onmousedown = { onMouse(it as MouseEvent, true) }
         window.onmouseup = { onMouse(it as MouseEvent, false) }
         onResize()
-        xOffset = (-width * 1.5).toInt()
-        yOffset = -height * 2
-        zoom = 2400
-//        xOffset = -width / 2
-//        yOffset = -height / 2
-//        zoom = 300
-//        xOffset = -6537
-//        yOffset = -2303
-//        zoom = 8700
-//    zoom: 8700 xOffset: -6537 yOffset: -2303
-//    zoom: 13700 xOffset: -10202 yOffset: -4136
-//    zoom: 4100 xOffset: -2806 yOffset: -2586
-//    zoom: 3800 xOffset: -482 yOffset: -2830
-//    zoom: 7400 xOffset: -6921 yOffset: -2390
-//        zoom: 28100 xOffset: -17145 yOffset: -18709 palete10
-//        zoom: 40100 xOffset: -23263 yOffset: -26188
-        zoom = 4100
-        xOffset = -2806
-        yOffset = -2586
+//        load(-width * 2, -height * 2, 300)
+//        load((-width * 1.5).toInt(), -height * 2, 2400)
+//        load(-6537, -2303, 8700)
+//        load(-10202, -4136, 13700)
+//        load(-2806, -2586, 4100)
+//        load(-482, -2830, 3800)
+//        load(-6921, -2390, 7400)
+        load(-17145, -18709, 28100) //palete10
+//        load(-23263, -26188, 40100)
         draw()
     }
 
-    var mouseDownX = 0
-    var mouseDownY = 0
+    private fun load(x: Int, y: Int, z: Int) {
+        xOffset = x
+        yOffset = y
+        zoom = z
+    }
 
     private fun onMouse(event: MouseEvent, down: Boolean): Unit {
         if (down) {
@@ -72,83 +70,72 @@ class MainView(val canvas: Element) {
 
     fun onKeyPress(event: KeyboardEvent): Unit {
         when (event.code) {
-            "KeyQ" -> {   //q
-                changeZoom(1000)
+            "KeyQ" -> {
+                setZoom(zoom + 1000)
             }
-            "KeyA" -> {   //w
-                changeZoom(-1000)
+            "KeyA" -> {
+                setZoom(zoom - 1000)
             }
-            "KeyW" -> {   //q
-                changeZoom(100)
+            "KeyW" -> {
+                setZoom(zoom * 12 / 10)
             }
-            "KeyS" -> {   //w
-                changeZoom(-100)
+            "KeyS" -> {
+                setZoom(zoom * 10 / 12)
             }
-            "KeyC" -> {   //w
+            "KeyC" -> {
                 colorPalete = (colorPalete + 1) % colors.size
             }
         }
         draw()
     }
 
-//    (0, 0) - (500, 500)
-//    (x + xoff, y + yoff) / zoom -> a, b
-//    x1 = a * zoom - xoff
-//    x2 = a * zoom - xoff
-//    a * zoom1 - xOff1 = a  * zoom2 - xOff2
-//    xOff2 = a * zoom2 - a * zoom1 + xOff1 = a (zoom2 - zoom1) + xOff1
-//    a = (250 + xOff1) / zoom1
-//      xOff2 = (width / 2 + xOff1) * (zoom2 - zoom1) / zoom1 + xOff1
-
-//      a1 = a2
-//    (x + xoff1) / zoom1 = (x + xoff2) / zoom2
-//      xoff2 = (x + xoff1) / zoom1 * zoom2 - x
-
-//    a = 0 zoom = 1 x = 250 (250 + xOff) / 1 = 0 -> xOff = -250
-//    a = 0 zoom = 1000 xOff = -250 x = 250 (250 - 250) / 1 * 1000 - 250 -> -250
-    //a = 0.01 zoom = 10 x = 250
-
-//    x / zoom + xOff -> x = 250, zoom = 1, xOff = -250;
-//    x / zoom + xOff -> x = 250, zoom = 100, xOff = -250;
-    fun changeZoom(delta: Int): Unit {
+    fun setZoom(newZoom: Int): Unit {
         val oldZoom = zoom
-        zoom += delta
-//      xOff2 = (width / 2 + xOff1) * (zoom2 - zoom1) / zoom1 + xOff1
+        zoom = newZoom
         xOffset = (width  / 2 + xOffset) * (zoom - oldZoom) / oldZoom + xOffset
         yOffset = (height / 2 + xOffset) * (zoom - oldZoom) / oldZoom + yOffset
     }
 
     fun onResize() {
-//    canvas.setAttribute("width", "500")
-//    canvas.setAttribute("height", "500")
+//        canvas.setAttribute("width", "500")
+//        canvas.setAttribute("height", "500")
         canvas.setAttribute("width", window.innerWidth.toString())
         canvas.setAttribute("height", window.innerHeight.toString())
         width = canvas.clientWidth
         height = canvas.clientHeight
+        img = ctx.createImageData(width.toDouble(), height.toDouble())
         draw()
     }
+
 
 
     fun draw() {
         val start = Date().getTime()
         ctx.clearRect(0.0, 0.0, width.toDouble(), height.toDouble())
-        ctx.beginPath()
         for (y in 0..height - 1) {
             for (x in 0..width - 1) {
                 val m = mandelbrot(x, y, zoom, xOffset, yOffset)
-                ctx.fillStyle = getColor(m)
-                ctx.fillRect(x.toDouble(), y.toDouble(), 1.0, 1.0)
+                img.setPixel(x, y, getColor(m))
             }
         }
-        ctx.stroke()
+        ctx.putImageData(img, 0.0, 0.0)
         val elapsed = Date().getTime() - start
-        println("draw elapsed: $elapsed zoom: $zoom xOffset: $xOffset yOffset: $yOffset")
+        println("draw elapsed: $elapsed")
+        println("load($xOffset, $yOffset, $zoom)")
     }
 
-    fun getColor(m: Double): String {
+    private fun ImageData.setPixel(x: Int, y: Int, color: Int) {
+        val offset = (y * width + x) * 4
+        data[offset] = color.b4().toByte()
+        data[offset + 1] = color.b1().toByte()
+        data[offset + 2] = color.b2().toByte()
+        data[offset + 3] = color.b3().toByte()
+//        data[offset + 3] = 127.toByte()
+    }
+
+    fun getColor(m: Double): Int {
         val index = (m * (colors[colorPalete].size - 1)).toInt()
-        val g = colors[colorPalete][index]
-        return "#${g.toHex()}"
+        return colors[colorPalete][index]
     }
 
     fun mandelbrot(x: Int, y: Int, zoom: Int, xOffset: Int, yOffset: Int): Double {
