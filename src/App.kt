@@ -19,7 +19,7 @@ fun onLoad() {
 
 class MainView(val canvas: Element) {
     val iterationsCount = 64
-    val colors = arrayOf(color11, color1, color2, color6, color8, color9, color10)
+    val colors = arrayOf(color1, color2, color6, color8, color9, color10, color11)
     val ctx = canvas.asDynamic().getContext("2d") as CanvasRenderingContext2D
     var img = ctx.createImageData(500.0, 500.0)
     var zoom = 0
@@ -97,8 +97,6 @@ class MainView(val canvas: Element) {
     }
 
     fun onResize() {
-//        canvas.setAttribute("width", "500")
-//        canvas.setAttribute("height", "500")
         canvas.setAttribute("width", window.innerWidth.toString())
         canvas.setAttribute("height", window.innerHeight.toString())
         width = canvas.clientWidth
@@ -106,8 +104,6 @@ class MainView(val canvas: Element) {
         img = ctx.createImageData(width.toDouble(), height.toDouble())
         draw()
     }
-
-
 
     fun draw() {
         val start = Date().getTime()
@@ -126,11 +122,10 @@ class MainView(val canvas: Element) {
 
     private fun ImageData.setPixel(x: Int, y: Int, color: Int) {
         val offset = (y * width + x) * 4
-        data[offset] = color.b4().toByte()
-        data[offset + 1] = color.b1().toByte()
-        data[offset + 2] = color.b2().toByte()
-        data[offset + 3] = color.b3().toByte()
-//        data[offset + 3] = 127.toByte()
+        data[offset] = color.b2().asDynamic()          //r
+        data[offset + 1] = color.b3().asDynamic()      //g
+        data[offset + 2] = color.b4().asDynamic()      //b
+        data[offset + 3] = color.b1().asDynamic()      //a
     }
 
     fun getColor(m: Double): Int {
