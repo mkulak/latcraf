@@ -1,7 +1,6 @@
 import org.khronos.webgl.set
 import org.w3c.dom.*
-import org.w3c.dom.events.KeyboardEvent
-import org.w3c.dom.events.MouseEvent
+import org.w3c.dom.events.*
 import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.js.Date
@@ -38,6 +37,7 @@ class MainView(val canvas: Element) {
         window.onkeypress = { onKeyPress(it as KeyboardEvent) }
         window.onmousedown = { onMouse(it as MouseEvent, true) }
         window.onmouseup = { onMouse(it as MouseEvent, false) }
+        window.onwheel = { onWheel(it as WheelEvent) }
         onResize()
 //        load(-width * 2, -height * 2, 300)
 //        load((-width * 1.5).toInt(), -height * 2, 2400)
@@ -46,8 +46,9 @@ class MainView(val canvas: Element) {
 //        load(-2806, -2586, 4100)
 //        load(-482, -2830, 3800)
 //        load(-6921, -2390, 7400)
-        load(-17145, -18709, 28100) //palete10
+//        load(-17145, -18709, 28100) //palete10
 //        load(-23263, -26188, 40100)
+        load(-3329, -7673, 10930)
         draw()
     }
 
@@ -57,7 +58,7 @@ class MainView(val canvas: Element) {
         zoom = z
     }
 
-    private fun onMouse(event: MouseEvent, down: Boolean): Unit {
+    private fun onMouse(event: MouseEvent, down: Boolean) {
         if (down) {
             mouseDownX = event.screenX
             mouseDownY = event.screenY
@@ -66,6 +67,12 @@ class MainView(val canvas: Element) {
             yOffset -= event.screenY - mouseDownY
             draw()
         }
+    }
+
+    private fun onWheel(event: WheelEvent) {
+        setZoom(zoom - event.deltaY.toInt() * 10)
+        event.preventDefault()
+        draw()
     }
 
     fun onKeyPress(event: KeyboardEvent): Unit {
@@ -92,7 +99,7 @@ class MainView(val canvas: Element) {
     fun setZoom(newZoom: Int): Unit {
         val oldZoom = zoom
         zoom = newZoom
-        xOffset = (width  / 2 + xOffset) * (zoom - oldZoom) / oldZoom + xOffset
+        xOffset = (width / 2 + xOffset) * (zoom - oldZoom) / oldZoom + xOffset
         yOffset = (height / 2 + xOffset) * (zoom - oldZoom) / oldZoom + yOffset
     }
 
@@ -151,12 +158,6 @@ class MainView(val canvas: Element) {
     }
 
 }
-
-fun Int.toHex(): String = listOf(b2(), b3(), b4()).map(::byteToHex).joinToString("")
-
-fun byteToHex(v: Int): String = hexDigit(v / 16).toString() + hexDigit(v % 16)
-
-fun hexDigit(v: Int): Char = charArrayOf('0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' , '9' , 'a' , 'b' , 'c' , 'd' , 'e' , 'f')[v]
 
 inline fun Int.b1(): Int = (this shr 24).lastByte()
 inline fun Int.b2(): Int = (this shr 16).lastByte()
